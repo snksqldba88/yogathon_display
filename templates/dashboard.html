@@ -18,23 +18,18 @@ body{font-family:Segoe UI,sans-serif;background:#F4F6F7;margin:0;padding:10px}
 
 .slot-block{background:#fff;padding:12px;border-radius:10px;margin-bottom:10px}
 .curr{background:#BDD7EE}
-h2{margin:0}
 
 .slot-title{font-size:20px;font-weight:bold}
 .lead{font-size:22px;font-weight:bold}
 .support{font-size:18px}
 
-.clock{font-size:32px}
-.countdown{font-size:20px;color:red}
-
-.progress-container{background:#ddd;height:20px;border-radius:10px;overflow:hidden;margin-bottom:10px}
-.progress-bar{background:green;height:100%;width:0%}
+.clock{font-size:30px;font-weight:bold;margin-bottom:10px}
 
 .instructions{background:#fff;padding:12px;border-radius:10px;margin-top:10px}
 
 #qr{width:160px}
 
-.total-count{font-size:40px;color:green;font-weight:bold;text-align:center;margin-top:10px}
+.total-count{font-size:42px;color:green;font-weight:bold;text-align:center;margin-top:10px}
 </style>
 </head>
 
@@ -45,8 +40,8 @@ h2{margin:0}
 <!-- LEFT -->
 <div class="left">
 
-<iframe width="100%" height="800"
-src="https://www.youtube.com/embed/{{youtube_id}}?autoplay=1&loop=1&playlist={{youtube_id}}"
+<iframe width="100%" height="550"
+src="https://www.youtube.com/embed/{{youtube_id}}?autoplay=1&mute=1&loop=1&playlist={{youtube_id}}"
 allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 <div style="text-align:center;margin-top:15px">
@@ -58,33 +53,34 @@ allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 <!-- RIGHT -->
 <div class="right">
-    <div style="font-size:22px;font-weight:bold">Current Time: </div>
+
 <div class="clock" id="clock"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center">
+
+<div style="display:flex;justify-content:space-between">
 
 <div style="width:65%">
 
 <div class="slot-block">
-<div class="slot-title">Previous Slot ({{prev.time}})</div>
+<div class="slot-title">Previous Slot (<span id="prev_time">{{prev.time}}</span>)</div>
 <div class="lead" id="prev_lead">{{prev.lead}}</div>
 <div class="support" id="prev_support">{{prev.support}}</div>
 </div>
 
 <div class="slot-block curr">
-<div class="slot-title">Current Slot ({{curr.time}})</div>
+<div class="slot-title">Current Slot (<span id="curr_time">{{curr.time}}</span>)</div>
 <div class="lead" id="curr_lead">{{curr.lead}}</div>
 <div class="support" id="curr_support">{{curr.support}}</div>
 </div>
 
 <div class="slot-block">
-<div class="slot-title">Next Slot ({{next.time}})</div>
+<div class="slot-title">Next Slot (<span id="next_time">{{next.time}}</span>)</div>
 <div class="lead" id="next_lead">{{next.lead}}</div>
 <div class="support" id="next_support">{{next.support}}</div>
 </div>
 
 </div>
 
-<div style="width:50%;text-align:center">
+<div style="width:30%;text-align:center">
 <img id="qr" src="/static/{{qr_path}}">
 </div>
 
@@ -111,43 +107,43 @@ allow="autoplay; encrypted-media" allowfullscreen></iframe>
 <script>
 let lastSlot = -1;
 
-const eventStart = new Date("{{event_start}}");
-const eventEnd   = new Date("{{event_end}}");
-
 function updateClock(){
   const now=new Date();
-  clock.innerText=now.toLocaleTimeString();
-
-  let diff=eventEnd-now; if(diff<0) diff=0;
-  const h=Math.floor(diff/3600000);
-  const m=Math.floor((diff%3600000)/60000);
-  const s=Math.floor((diff%60000)/1000);
-
-  countdown.innerText=`${h}h ${m}m ${s}s`;
-
-  const pct=((now-eventStart)/(eventEnd-eventStart))*100;
-  progress.style.width=pct+"%";
+  document.getElementById("clock").innerText =
+     "Current Time: " + now.toLocaleTimeString();
 }
 
 setInterval(updateClock,1000);
 updateClock();
 
-setInterval(()=>{
-  fetch("/data").then(r=>r.json()).then(d=>{
-    prev_lead.innerText=d.prev.lead;
-    prev_support.innerText=d.prev.support;
-    curr_lead.innerText=d.curr.lead;
-    curr_support.innerText=d.curr.support;
-    next_lead.innerText=d.next.lead;
-    next_support.innerText=d.next.support;
-    total_count.innerText=d.total;
+function refreshData(){
+  fetch("/data")
+    .then(r=>r.json())
+    .then(d=>{
 
-    if(d.slot_index!=lastSlot){
-      beep.play();
-      lastSlot=d.slot_index;
-    }
-  });
-},5000);
+      document.getElementById("prev_time").innerText = d.prev.time;
+      document.getElementById("prev_lead").innerText = d.prev.lead;
+      document.getElementById("prev_support").innerText = d.prev.support;
+
+      document.getElementById("curr_time").innerText = d.curr.time;
+      document.getElementById("curr_lead").innerText = d.curr.lead;
+      document.getElementById("curr_support").innerText = d.curr.support;
+
+      document.getElementById("next_time").innerText = d.next.time;
+      document.getElementById("next_lead").innerText = d.next.lead;
+      document.getElementById("next_support").innerText = d.next.support;
+
+      document.getElementById("total_count").innerText = d.total;
+
+      if(d.slot_index !== lastSlot){
+        document.getElementById("beep").play();
+        lastSlot = d.slot_index;
+      }
+
+    }).catch(err=>console.log("Auto refresh error:",err));
+}
+
+setInterval(refreshData,5000);
 </script>
 
 </body>
