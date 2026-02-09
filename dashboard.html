@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ultimate Marathon Dashboard</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{font-family:Segoe UI,sans-serif;background:#F4F6F7;margin:0;padding:10px}
+.container{display:flex;flex-wrap:wrap}
+.left,.right{padding:10px;box-sizing:border-box}
+.left{width:50%}
+.right{width:50%}
+
+@media(max-width:900px){
+  .left,.right{width:100%}
+}
+
+.slot-block{background:#fff;padding:12px;border-radius:10px;margin-bottom:10px}
+.curr{background:#BDD7EE}
+h2{margin:0}
+
+.slot-title{font-size:20px;font-weight:bold}
+.lead{font-size:22px;font-weight:bold}
+.support{font-size:18px}
+
+.clock{font-size:32px}
+.countdown{font-size:20px;color:red}
+
+.progress-container{background:#ddd;height:20px;border-radius:10px;overflow:hidden;margin-bottom:10px}
+.progress-bar{background:green;height:100%;width:0%}
+
+.instructions{background:#fff;padding:12px;border-radius:10px;margin-top:10px}
+
+#qr{width:160px}
+
+.total-count{font-size:40px;color:green;font-weight:bold;text-align:center;margin-top:10px}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- LEFT -->
+<div class="left">
+
+<iframe width="100%" height="800"
+src="https://www.youtube.com/embed/{{youtube_id}}?autoplay=1&loop=1&playlist={{youtube_id}}"
+allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
+<div style="text-align:center;margin-top:15px">
+<div style="font-size:22px;font-weight:bold">Total Surya Namaskar Count</div>
+<div class="total-count" id="total_count">{{total_count}}</div>
+</div>
+
+</div>
+
+<!-- RIGHT -->
+<div class="right">
+
+<div class="clock" id="clock"></div>
+<div class="countdown" id="countdown"></div>
+
+<div class="progress-container">
+<div class="progress-bar" id="progress"></div>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center">
+
+<div style="width:70%">
+
+<div class="slot-block">
+<div class="slot-title">Previous Slot ({{prev.time}})</div>
+<div class="lead" id="prev_lead">{{prev.lead}}</div>
+<div class="support" id="prev_support">{{prev.support}}</div>
+</div>
+
+<div class="slot-block curr">
+<div class="slot-title">Current Slot ({{curr.time}})</div>
+<div class="lead" id="curr_lead">{{curr.lead}}</div>
+<div class="support" id="curr_support">{{curr.support}}</div>
+</div>
+
+<div class="slot-block">
+<div class="slot-title">Next Slot ({{next.time}})</div>
+<div class="lead" id="next_lead">{{next.lead}}</div>
+<div class="support" id="next_support">{{next.support}}</div>
+</div>
+
+</div>
+
+<div style="width:25%;text-align:center">
+<img id="qr" src="/static/{{qr_path}}">
+</div>
+
+</div>
+
+<div class="instructions">
+<h3>Instructions</h3>
+<ol>
+<li>Keep your video ON.</li>
+<li>Start only when your slot begins.</li>
+<li>Wait for previous participant.</li>
+<li>Scan QR & submit your count.</li>
+</ol>
+</div>
+
+</div>
+
+</div>
+
+<audio id="beep">
+<source src="/static/beep.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+let lastSlot = -1;
+
+const eventStart = new Date("{{event_start}}");
+const eventEnd   = new Date("{{event_end}}");
+
+function updateClock(){
+  const now=new Date();
+  clock.innerText=now.toLocaleTimeString();
+
+  let diff=eventEnd-now; if(diff<0) diff=0;
+  const h=Math.floor(diff/3600000);
+  const m=Math.floor((diff%3600000)/60000);
+  const s=Math.floor((diff%60000)/1000);
+
+  countdown.innerText=`${h}h ${m}m ${s}s`;
+
+  const pct=((now-eventStart)/(eventEnd-eventStart))*100;
+  progress.style.width=pct+"%";
+}
+
+setInterval(updateClock,1000);
+updateClock();
+
+setInterval(()=>{
+  fetch("/data").then(r=>r.json()).then(d=>{
+    prev_lead.innerText=d.prev.lead;
+    prev_support.innerText=d.prev.support;
+    curr_lead.innerText=d.curr.lead;
+    curr_support.innerText=d.curr.support;
+    next_lead.innerText=d.next.lead;
+    next_support.innerText=d.next.support;
+    total_count.innerText=d.total;
+
+    if(d.slot_index!=lastSlot){
+      beep.play();
+      lastSlot=d.slot_index;
+    }
+  });
+},5000);
+</script>
+
+</body>
+</html>
+
