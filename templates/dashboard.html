@@ -58,17 +58,11 @@ allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 <!-- RIGHT -->
 <div class="right">
-
+    <div style="font-size:22px;font-weight:bold">Current Time: </div>
 <div class="clock" id="clock"></div>
-<div class="countdown" id="countdown"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
 
-<div class="progress-container">
-<div class="progress-bar" id="progress"></div>
-</div>
-
-<div style="display:flex;justify-content:space-between;align-items:center">
-
-<div style="width:70%">
+<div style="width:65%">
 
 <div class="slot-block">
 <div class="slot-title">Previous Slot ({{prev.time}})</div>
@@ -90,7 +84,7 @@ allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 </div>
 
-<div style="width:25%;text-align:center">
+<div style="width:50%;text-align:center">
 <img id="qr" src="/static/{{qr_path}}">
 </div>
 
@@ -158,4 +152,3 @@ setInterval(()=>{
 
 </body>
 </html>
-

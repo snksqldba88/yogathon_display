@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Live Slot Dashboard</title>
+    <meta http-equiv="refresh" content="{{ refresh }}">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Segoe UI, Arial, sans-serif;
+            background: #000;
+            color: #0f0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .left, .right {
+            width: 50%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .left {
+            border-right: 3px solid #0f0;
+        }
+
+        .box {
+            border: 2px solid #0f0;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        h2 {
+            margin-top: 0;
+            text-align: center;
+            color: #00ffea;
+        }
+
+        .slot span {
+            display: block;
+            font-size: 24px;
+            margin: 5px 0;
+        }
+
+        .clock {
+            text-align: center;
+            font-size: 42px;
+            color: #ffcc00;
+            margin-bottom: 10px;
+        }
+
+        .count {
+            text-align: center;
+            font-size: 50px;
+            font-weight: bold;
+            color: #ff4444;
+        }
+
+        iframe {
+            width: 100%;
+            height: 60%;
+            border-radius: 12px;
+            border: 2px solid #0f0;
+        }
+
+        img {
+            width: 60%;
+            display: block;
+            margin: auto;
+            border-radius: 12px;
+            border: 2px solid #0f0;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- LEFT SIDE -->
+    <div class="left">
+
+        <div class="clock" id="clock"></div>
+
+        <div class="box">
+            <h2>Previous Slot</h2>
+            <div class="slot">
+                <span>Lead: {{ prev_slot["Lead Name"] if prev_slot is not none else "-" }}</span>
+                <span>Support: {{ prev_slot["Support Name"] if prev_slot is not none else "-" }}</span>
+            </div>
+        </div>
+
+        <div class="box">
+            <h2>Current Slot</h2>
+            <div class="slot">
+                <span>Lead: {{ curr_slot["Lead Name"] if curr_slot is not none else "-" }}</span>
+                <span>Support: {{ curr_slot["Support Name"] if curr_slot is not none else "-" }}</span>
+            </div>
+        </div>
+
+        <div class="box">
+            <h2>Next Slot</h2>
+            <div class="slot">
+                <span>Lead: {{ next_slot["Lead Name"] if next_slot is not none else "-" }}</span>
+                <span>Support: {{ next_slot["Support Name"] if next_slot is not none else "-" }}</span>
+            </div>
+        </div>
+
+        <div class="box">
+            <h2>Total Count</h2>
+            <div class="count">{{ total_count }}</div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="right">
+
+        <iframe
+            src="https://www.youtube.com/embed/YOUR_VIDEO_ID?autoplay=1&mute=1&loop=1&playlist=YOUR_VIDEO_ID"
+            allow="autoplay">
+        </iframe>
+
+        <br><br>
+
+        <img src="{{ url_for('static', filename='qr.png') }}">
+
+    </div>
+
+</div>
+
+<script>
+    function updateClock() {
+        const now = new Date();
+        document.getElementById("clock").innerHTML =
+            now.toLocaleTimeString('en-US', { hour12: true });
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+</script>
+
+</body>
+</html>

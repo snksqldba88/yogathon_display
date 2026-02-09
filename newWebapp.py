@@ -5,12 +5,12 @@ import pytz
 import os
 
 # ================= CONFIG =================
-EXCEL_FILE = "/home/ubuntu/yogathon_display/files/Slots.xlsx"
+EXCEL_FILE = "D:/WebApp/files/Slots.xlsx"
 LIVE_COUNT_FILE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSiZ_zUqGTGWLCu4Adr3zH6i-phaXqsYPY467l99f1v3rpTLQr9HfKtbSWbfnJUMTPQ6Geq2HzSo_oe/pub?gid=0&single=true&output=csv"
 QR_IMAGE_FILE = "hovercode.png"
 YOUTUBE_VIDEO_ID = "eyjgAOBzeTE"
 
-TIMEZONE = pytz.timezone("America/New_York")
+TIMEZONE = pytz.timezone("US/Eastern")
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
@@ -25,17 +25,28 @@ def load_slots(file_path):
 
     today = datetime.now(TIMEZONE).date()
 
+    # Convert to time only
     df["Start Time"] = pd.to_datetime(df["Start Time"], errors="coerce").dt.time
 
-    df["Start DateTime"] = df["Start Time"].apply(
-        lambda t: TIMEZONE.localize(datetime.combine(today, t)) if pd.notna(t) else None
-            )
+    start_datetimes = []
+    current_day = today
+    prev_time = None
+
+    for t in df["Start Time"]:
+        if prev_time and t < prev_time:
+            current_day = current_day + pd.Timedelta(days=1)
+
+        start_datetimes.append(
+            TIMEZONE.localize(datetime.combine(current_day, t))
+        )
+        prev_time = t
+
+    df["Start DateTime"] = start_datetimes
 
     df = df.dropna(subset=["Start DateTime"])
     df = df.sort_values("Start DateTime").reset_index(drop=True)
 
-    print("Slots Loaded:\n", df[["Start Time","Lead Name","Support Lead"]].head())
-
+    print("Slots Loaded:", len(df))
     return df
 
 
@@ -51,12 +62,11 @@ def format_time(dt):
 
 def slot_to_dict(s):
     if s is None or s.empty:
-        return {"time":"-","lead":"-","support":"-"}
-
+        return {"Lead Name":"-", "Support Lead":"-", "Time":"--"}
     return {
-        "time": format_time(s["Start DateTime"]),
-        "lead": str(s.get("Lead Name","-")),
-        "support": str(s.get("Support Lead","-"))
+        "Lead Name": s.get("Lead Name","-"),
+        "Support Lead": s.get("Support Lead","-"),
+        "Time": s["Start DateTime"].strftime("%I:%M %p")
     }
 
 
@@ -124,4 +134,3 @@ def data():
 if __name__ == "__main__":
     print("🚀 Dashboard running on http://0.0.0.0:5000")
     app.run(host="0.0.0.0", port=5000, debug=True)
-
